@@ -5,50 +5,55 @@ Sisesta käsk python -m http.server (see käivitab lokaalse veebiserveri pordil 
 Ava veebibrauser ja mine aadressile http://localhost:8000.
  -->
 
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Art-interface</title>
-        <link rel="stylesheet" href="../static/styles.css">
-    </head>
-
-<body>
-    <header>
-        <div id="headersText">ART INTERFACE</div>
-    </header>
-
-    <main>
-        <form id="myForm">
-            <textarea type="text" id="userInput" placeholder="Enter your coded picture or ASCII art here" rows="22" cols="77"></textarea>
-            <div class="buttons">
-                <button class="oval" type="button" id="decodeButton">Decode</button>
-                <button class="oval" type="button" id="encodeButton">Encode</button>
-            </div>
-        </form>
-
-        <div id="resultArea">
-            <p id="information"> Your result will appear here..</p>
-            <!-- <p> Your result will appear here..</p> -->
-
-        </div>
-        
-    </main>
-
-    <footer>
-        <section>
-            <p>This page is made by Reigo Reimets in 2024</p>
-            <ul id="footer-icons">
-                <li id="socialLogos"><a href="https://www.instagram.com/reigo.reimets"target="_blank"><img src="../icons/instagram_logo.png" alt="Icon: Instagram icon" height="20"> </a></li>
-                <li id="socialLogos"><a href="https://www.facebook.com/reigo.reimets"target="_blank"><img src="../icons/facebook-logo2.png" alt="Icon: Facebook icon" height="20"> </a></li>
-                <li id="socialLogos"><a href="https://www.linkedin.com/in/reigoreimets/"target="_blank"><img src="../icons/linkedin-logo2.png" alt="Icon: LinkedIn icon" height="20"> </a></li>
-            </ul>
-        </section>
-    </footer>
-
-</body>
-    
-
-
-</html>
+ <!DOCTYPE html>
+ <html lang="en">
+     <head>
+         <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+         <title>Art-interface</title>
+         <link rel="stylesheet" href="../static/css/styles.css">
+     </head>
+ 
+ <body>
+     <header>
+         <div id="headersText">ART INTERFACE</div>
+     </header>
+ 
+     <main>
+         <div class="themeToggleButtons">
+         <button class="oval" type="button" id="themeToggle">Toggle Light/Dark</button>
+         </div>
+ 
+         <form id="myForm">
+             <textarea type="text" id="userInput" placeholder="Enter your coded picture or ASCII art here" rows="22" cols="77"></textarea>
+             <div class="buttons">
+                 <button class="oval" type="button" id="decodeButton">Decode</button>
+                 <button class="oval" type="button" id="encodeButton">Encode</button>
+             </div>
+         </form>
+ 
+         <div id="resultArea">
+             <p id="information"> Your result will appear here..</p>
+             <!-- <p> Your result will appear here..</p> -->
+         </div>
+         
+     </main>
+ 
+     <footer>
+         <section>
+             <p>This page is made by Reigo Reimets in 2024</p>
+             <ul id="footer-icons">
+                 <li id="socialLogos"><a href="https://www.instagram.com/reigo.reimets"target="_blank"><img src="../static/icons/instagram_logo.png" alt="Icon: Instagram icon" height="20"> </a></li>
+                 <li id="socialLogos"><a href="https://www.facebook.com/reigo.reimets"target="_blank"><img src="../static/icons/facebook-logo2.png" alt="Icon: Facebook icon" height="20"> </a></li>
+                 <li id="socialLogos"><a href="https://www.linkedin.com/in/reigoreimets/"target="_blank"><img src="../static/icons/linkedin-logo2.png" alt="Icon: LinkedIn icon" height="20"> </a></li>
+             </ul>
+         </section>
+     </footer>
+ 
+     <script src="../static/js/theme-switcher.js"></script>
+ 
+ </body>
+     
+ 
+ 
+ </html>

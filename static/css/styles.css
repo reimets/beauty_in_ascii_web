@@ -2,6 +2,53 @@
 See CSS reegel kasutab universaalset selektorit *, mis rakendab stiili kõikidele elemenditele HTML dokumendis. Selle lähenemise eesmärk on tagada ühtlane alusstiil 
 kogu veebilehe või -rakenduse jaoks, enne kui rakendatakse konkreetsemate elementide spetsiifilisemaid stiile. 
 */
+
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/*  */
+/* Siin on :root pseudoklassis defineeritud heleda teema värvid ja [data-theme="dark"] valikus tumeda teema värvid. CSS Custom Properties 
+(nt --primary-text-color) kasutamine võimaldab teil neid värve JavaScripti abil dünaamiliselt muuta.
+*/
+:root {
+    --text-shadow-color: #575757;
+    --primary-text-color: #333;
+    --info-text-color: #6c6c6c;
+    --background-color: #ffffff;
+    --button-background-color: linear-gradient(#b8b8b8, #f0f0f0, #f0f0f0);
+
+    --main-background-color: #f0f0f0;
+    --textarea-background-color: #ffffff; /* Heleda režiimi textarea taustavärv */
+    --header-background: linear-gradient(#b8b8b8, #cfcfcf, #ffffff);
+    --footer-background: linear-gradient(#ffffff, #cfcfcf, #b8b8b8);
+}
+
+[data-theme="dark"] {
+    --text-shadow-color: #ffffff;
+    --primary-text-color: #c6c2c2;
+    --info-text-color: #999;
+    --background-color: #777;
+    --button-background-color: linear-gradient(#6f6f6f, #6f6f6f, #555);
+
+    --main-background-color: #6f6f6f;
+    --textarea-background-color: #333; /* Tumedas režiimis textarea taustavärv */
+    --header-background: linear-gradient(#333, #555, #777);
+    --footer-background: linear-gradient(#777, #555, #333);
+}
+/* 
+body {
+    color: var(--primary-text-color);
+    background-color: var(--background-color);
+} */
+/* 
+header {
+    background-image: var(--header-background);
+} */
+
+
 * {
     margin: 0;
     padding: 0;
@@ -11,8 +58,10 @@ kogu veebilehe või -rakenduse jaoks, enne kui rakendatakse konkreetsemate eleme
 }
 
 header {
-    background-image: linear-gradient(#b8b8b8, #cfcfcf, #ffffff); /* gradient ala headeris*/
-    color: #333;
+    background-image: var(--header-background);
+    color: var(--primary-text-color);
+    /* background-image: linear-gradient(#b8b8b8, #cfcfcf, #ffffff); gradient ala headeris */
+    /* color: #333; */
     text-align: center;
     padding: 2rem;
     font-weight: bold;
@@ -20,15 +69,19 @@ header {
 
 /* Stiil pealkirjale */
 #headersText {
-    text-shadow: 1px 2px 7px #575757;
+    /* text-shadow: 1px 2px 7px #575757; */
+    text-shadow: 1px 2px 7px var(--text-shadow-color);
     font-size: 3em;
     font-weight: 800;
 }
 
 body {
+    color: var(--primary-text-color);
+    background-color: var(--background-color);
+
     font-family: Arial, sans-serif;
-    background-color: #ffffff;
-    color: #333;
+    /* background-color: #ffffff; */
+    /* color: #333; */
     line-height: 1.6; /* tekstirea kõrgus */
 }
 
@@ -40,8 +93,11 @@ main {
     
     margin: 20px; /* Määrab elemendi ümber välisääriste (margin), lisades 20 pikslit ruumi elemendi ja selle ümbritsevate elementide vahele igast küljest. */
     padding: 20px; /* Määrab elemendi sisemise ääriste (padding), lisades 20 pikslit ruumi elemendi piiride ja selle sisu vahel igast küljest. */
-    background-color: #f0f0f0; /* Määrab elemendi taustavärvi heledaks halliks (värvikood #f0f0f0). */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Lisab elemendile varju, et luua sügavuse mulje. Varju omadused on järgmised: horisontaalne nihkeväärtus 0, 
+    /* background-color: #f0f0f0; Määrab elemendi taustavärvi heledaks halliks (värvikood #f0f0f0). */
+    
+    background-color: var(--main-background-color); /* Määrab elemendi taustavärvi heledaks halliks (värvikood #f0f0f0). */
+
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Lisab elemendile varju, et luua sügavuse mulje. Varju omadused on järgmised: horisontaalne nihkeväärtus 0, 
     vertikaalne nihkeväärtus 4 pikslit, hägususe raadius 6 pikslit ja värv must (rgba(0, 0, 0, 0.1)) 10% läbipaistvusega.*/ 
     height: calc(100vh - 160px); /* Määrab elemendi kõrguseks 137 viewport'i kõrgust (vh) miinus 160 pikslit. calc() funktsioon võimaldab arvutada kõrguse 
     dünaamiliselt, võttes arvesse viewport'i suurust ja maha arvates kindla väärtuse, sel juhul 160 pikslit. See tagab, et element saab kohanduva kõrguse, 
@@ -49,8 +105,10 @@ main {
 }
 
 footer {
-    background-image: linear-gradient(#ffffff, #cfcfcf, #b8b8b8);
-    color: #333;
+    background-image: var(--footer-background);
+    color: var(--primary-text-color);
+    /* background-image: linear-gradient(#ffffff, #cfcfcf, #b8b8b8); */
+    /* color: #333; */
     text-align: center;
     line-height: 1.5;
     padding: 2rem 0; /* Sellise padding-i määramisega antakse elemendile rohkem ruumi üles ja alla, kuid jäetakse selle küljed puutumata, ilma lisaruumita. 
@@ -72,7 +130,7 @@ footer {
 }
 
 button {
-    padding: 10px 20px; /* ülal-all, vasak-parem*/
+    padding: 10px 20px; /* ülal-all, vasakul-paremal */
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -91,7 +149,8 @@ button:hover {
     height: 400px;
     margin: 20px auto;
     padding: 30px;
-    background-color: #f0f0f0;
+    /* background-color: #f0f0f0; */
+    background-color: var(--main-background-color);
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
@@ -115,26 +174,28 @@ button:hover {
     height: 400px;
     margin: 20px auto;
     padding: 20px;
-    background-color: #f0f0f0;
+    /* background-color: #f0f0f0; */
+    background-color: var(--main-background-color);
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     white-space: pre-wrap;
     overflow-y: auto; /* Näitab kerimisriba kui sisu ületab kõrguse */
     word-wrap: break-word; /* Veenduge, et pikad sõnad ei läheks üle piiri */
-
 }
 
 #information {
     font-size: 14px;
-    color: #6c6c6c;
+    /* color: #6c6c6c; */
+    color: var(--info-text-color);
     padding: 15px;
 }
 
 textarea {
     border-radius: 10px;
-    color: #7a7a7abc;
+    color: var(--primary-text-color); /* Kasuta sama värvi muutujat teksti värvi jaoks */
+    /* color: #7a7a7abc; */
     padding: 5px;
-
+    background-color: var(--textarea-background-color); /* Uuendatud */
 }
 
 #userInput {
@@ -152,16 +213,29 @@ textarea {
     gap: 50px;
 }
 
+.themeToggleButtons {
+    display: left;
+    justify-content: center ; /* Jaotab nupud ühtlaselt */
+    width: 100%; /* Võimaldab nuppudel võtta kogu vormi laiuse */
+    gap: 50px;
+}
+
+
 .oval {
-    width: 100px; /* Muutke laiust vajadusel */
-    height: 50px; /* Muutke kõrgust vajadusel */
-    background-image: linear-gradient(#b8b8b8, #f0f0f0, #f0f0f0);
-    color: #333;
+    width: 150px; /* Muutke laiust vajadusel */
+    height: 75px; /* Muutke kõrgust vajadusel */
+    /* background-image: linear-gradient(#b8b8b8, #f0f0f0, #f0f0f0); */
+    background-image: var(--button-background-color);
+
+    /* color: #333; */
+    color: var(--primary-text-color);
     font-weight: 700;
     /* font-size: 1em; */
-    text-shadow: 1px 2px 7px #575757;
+    /* text-shadow: 1px 2px 7px #575757; */
+    text-shadow: 1px 2px 7px var(--text-shadow-color);
     text-align: center;
     line-height: 20px; /* Reguleerige teksti vertikaalset keskendamist */
     border-radius: 50%; /* See tekitab ovaalse kuju */
     /* margin-bottom: 20px; */
 }
+
