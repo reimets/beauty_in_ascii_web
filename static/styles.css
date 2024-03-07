@@ -1,0 +1,167 @@
+/* Reset some defaults browser styles 
+See CSS reegel kasutab universaalset selektorit *, mis rakendab stiili kõikidele elemenditele HTML dokumendis. Selle lähenemise eesmärk on tagada ühtlane alusstiil 
+kogu veebilehe või -rakenduse jaoks, enne kui rakendatakse konkreetsemate elementide spetsiifilisemaid stiile. 
+*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial';
+    transition: all 0.3s ease;
+}
+
+header {
+    background-image: linear-gradient(#b8b8b8, #cfcfcf, #ffffff); /* gradient ala headeris*/
+    color: #333;
+    text-align: center;
+    padding: 2rem;
+    font-weight: bold;
+}
+
+/* Stiil pealkirjale */
+#headersText {
+    text-shadow: 1px 2px 7px #575757;
+    font-size: 3em;
+    font-weight: 800;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #ffffff;
+    color: #333;
+    line-height: 1.6; /* tekstirea kõrgus */
+}
+
+main {
+    overflow-y: auto; /* Määrab, et kui <main> elemendi sisu kõrgus ületab selle konteineri kõrguse, siis kuvatakse vertikaalne kerimisriba (y-teljel), 
+    mis võimaldab kasutajal näha ülejäänud sisu. Kui sisu mahub konteinerisse, kerimisriba ei kuvata.*/
+    /* display: flex; */
+    /* justify-content: space-between; */
+    
+    margin: 20px; /* Määrab elemendi ümber välisääriste (margin), lisades 20 pikslit ruumi elemendi ja selle ümbritsevate elementide vahele igast küljest. */
+    padding: 20px; /* Määrab elemendi sisemise ääriste (padding), lisades 20 pikslit ruumi elemendi piiride ja selle sisu vahel igast küljest. */
+    background-color: #f0f0f0; /* Määrab elemendi taustavärvi heledaks halliks (värvikood #f0f0f0). */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Lisab elemendile varju, et luua sügavuse mulje. Varju omadused on järgmised: horisontaalne nihkeväärtus 0, 
+    vertikaalne nihkeväärtus 4 pikslit, hägususe raadius 6 pikslit ja värv must (rgba(0, 0, 0, 0.1)) 10% läbipaistvusega.*/ 
+    height: calc(100vh - 160px); /* Määrab elemendi kõrguseks 137 viewport'i kõrgust (vh) miinus 160 pikslit. calc() funktsioon võimaldab arvutada kõrguse 
+    dünaamiliselt, võttes arvesse viewport'i suurust ja maha arvates kindla väärtuse, sel juhul 160 pikslit. See tagab, et element saab kohanduva kõrguse, 
+    mis sõltub seadme ekraani suurusest. */
+}
+
+footer {
+    background-image: linear-gradient(#ffffff, #cfcfcf, #b8b8b8);
+    color: #333;
+    text-align: center;
+    line-height: 1.5;
+    padding: 2rem 0; /* Sellise padding-i määramisega antakse elemendile rohkem ruumi üles ja alla, kuid jäetakse selle küljed puutumata, ilma lisaruumita. 
+    See on kasulik, kui soovitakse sisu vertikaalselt keskendada või lihtsalt lisada ülemist ja alumist ruumi ilma elementi külgedelt laiendamata. */
+    position: absolute;
+    width: 100%;
+}
+
+#footer-icons{
+    list-style-type: none;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 8px;
+}
+
+#socialLogos:hover {
+    opacity: 0.4;
+}
+
+button {
+    padding: 10px 20px; /* ülal-all, vasak-parem*/
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.7;
+}
+
+#myForm {
+    /* justify-content: center; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 600px;
+    height: 400px;
+    margin: 20px auto;
+    padding: 30px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+#resultArea {
+    /* Oluline on märkida, et kui te kasutate display: flex; koos flex-direction: column;, 
+    siis align-items: left; ei pruugi olla toetatud väärtus. 
+    Selle asemel võiksite kasutada align-items: flex-start;, et tagada sisu joondamine vasakule.*/ 
+    display: flex;
+    flex-direction: column;
+    /* align-items: left; katsetada, kas jääb käiku lõpuks see rida või järgmine rida */
+    align-items: flex-start;
+
+    /* width: 600px; Alglaius on 600px */
+    min-width: 600px; /* Minimaalne laius, väli ei lähe kitsamaks kui 600px */
+    max-width: max-content; /* Lubab väljal laieneda sisu laiuse järgi */
+
+    /* min-width: 600px; */
+    /* max-width: none; eemaldab maksimaalse laiuse piirangu */
+    /* width: auto; lubab laiusel automaatselt kohanduda sisu järgi */
+    height: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    white-space: pre-wrap;
+    overflow-y: auto; /* Näitab kerimisriba kui sisu ületab kõrguse */
+    word-wrap: break-word; /* Veenduge, et pikad sõnad ei läheks üle piiri */
+
+}
+
+#information {
+    font-size: 14px;
+    color: #6c6c6c;
+    padding: 15px;
+}
+
+textarea {
+    border-radius: 10px;
+    color: #7a7a7abc;
+    padding: 5px;
+
+}
+
+#userInput {
+    overflow-y: auto;
+    width: 100%;
+    height: 400px;
+    margin-bottom: 10px; /* Lisab ruumi sisestusvälja ja nuppude vahel */
+}
+
+/* Nuppude paigutuse jaoks mõeldud konteiner */
+.buttons {
+    display: flex;
+    justify-content: center ; /* Jaotab nupud ühtlaselt */
+    width: 100%; /* Võimaldab nuppudel võtta kogu vormi laiuse */
+    gap: 50px;
+}
+
+.oval {
+    width: 100px; /* Muutke laiust vajadusel */
+    height: 50px; /* Muutke kõrgust vajadusel */
+    background-image: linear-gradient(#b8b8b8, #f0f0f0, #f0f0f0);
+    color: #333;
+    font-weight: 700;
+    /* font-size: 1em; */
+    text-shadow: 1px 2px 7px #575757;
+    text-align: center;
+    line-height: 20px; /* Reguleerige teksti vertikaalset keskendamist */
+    border-radius: 50%; /* See tekitab ovaalse kuju */
+    /* margin-bottom: 20px; */
+}
