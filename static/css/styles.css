@@ -27,7 +27,7 @@ kogu veebilehe või -rakenduse jaoks, enne kui rakendatakse konkreetsemate eleme
 }
 
 [data-theme="dark"] {
-    --text-shadow-color: #ffffff;
+    --text-shadow-color: #000000;
     --primary-text-color: #c6c2c2;
     --info-text-color: #999;
     --background-color: #777;
