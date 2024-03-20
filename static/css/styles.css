@@ -3,17 +3,26 @@ See CSS reegel kasutab universaalset selektorit *, mis rakendab stiili kõikidel
 kogu veebilehe või -rakenduse jaoks, enne kui rakendatakse konkreetsemate elementide spetsiifilisemaid stiile. 
 */
 
-/*  */
-/*  */
-/*  */
-/*  */
-/*  */
-/*  */
-/*  */
 /* Siin on :root pseudoklassis defineeritud heleda teema värvid ja [data-theme="dark"] valikus tumeda teema värvid. CSS Custom Properties 
 (nt --primary-text-color) kasutamine võimaldab teil neid värve JavaScripti abil dünaamiliselt muuta.
 */
+/* panin vaikimisi tumeda režiimi, sest kui vaikimisi oli hele ja siis muutsin lehe tumedaks, siis tekkis tumedas reziimis ebemeeldiv olukord, kus
+leht tuli korraks läbi heleda režiimi.. see häiris.. kui on vaikimisi tume ning siis minna heledasse režiimi, siis see nii ei häiri, 
+lisaks tegin body-sse ja ka js-i lisad, et leht laeks sujuvalt 1 sek jooksul - nii ei häiri peaaegu üldse see režiimi vahetuses käimine */
 :root {
+    --text-shadow-color: #000000;
+    --primary-text-color: #c6c2c2;
+    --info-text-color: #d3d3d3;
+    --background-color: #777;
+    --button-background-color: linear-gradient(#6f6f6f, #6f6f6f, #555);
+
+    --main-background-color: #6f6f6f;
+    --textarea-background-color: #333; /* Tumedas režiimis textarea taustavärv */
+   --header-background: linear-gradient(#333, #555, #777);
+    --footer-background: linear-gradient(#777, #555, #333);
+}
+
+[data-theme="light"] {
     --text-shadow-color: #575757;
     --primary-text-color: #333;
     --info-text-color: #6c6c6c;
@@ -24,30 +33,8 @@ kogu veebilehe või -rakenduse jaoks, enne kui rakendatakse konkreetsemate eleme
     --textarea-background-color: #ffffff; /* Heleda režiimi textarea taustavärv */
     --header-background: linear-gradient(#b8b8b8, #cfcfcf, #ffffff);
     --footer-background: linear-gradient(#ffffff, #cfcfcf, #b8b8b8);
+
 }
-
-[data-theme="dark"] {
-    --text-shadow-color: #000000;
-    --primary-text-color: #c6c2c2;
-    --info-text-color: #999;
-    --background-color: #777;
-    --button-background-color: linear-gradient(#6f6f6f, #6f6f6f, #555);
-
-    --main-background-color: #6f6f6f;
-    --textarea-background-color: #333; /* Tumedas režiimis textarea taustavärv */
-    --header-background: linear-gradient(#333, #555, #777);
-    --footer-background: linear-gradient(#777, #555, #333);
-}
-/* 
-body {
-    color: var(--primary-text-color);
-    background-color: var(--background-color);
-} */
-/* 
-header {
-    background-image: var(--header-background);
-} */
-
 
 * {
     margin: 0;
@@ -76,6 +63,9 @@ header {
 }
 
 body {
+    opacity: 0; /* Alguses on lehekülg täiesti läbipaistev */
+    transition: opacity 1s ease-in-out; /* Määratleb, kuidas opacity muutus toimub */
+
     color: var(--primary-text-color);
     background-color: var(--background-color);
 
@@ -83,6 +73,22 @@ body {
     /* background-color: #ffffff; */
     /* color: #333; */
     line-height: 1.6; /* tekstirea kõrgus */
+}
+
+/*    ka siin on üks lehe sujuvaks ilmumiseks mõeldav variant */
+/* 
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+body {
+    animation: fadeIn 0.5s ease-out;
+}
+*/
+
+body.loaded {
+    opacity: 1; /* Kui leht on laetud, muutub see täielikult opaakseks */
 }
 
 main {
@@ -142,10 +148,13 @@ button:hover {
 
 #myForm {
     /* justify-content: center; */
+    font-family: 'Consolas', 'Courier New', monospace;
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 600px;
+    min-width: 625px;
+    max-width: max-content;
     height: 400px;
     margin: 20px auto;
     padding: 30px;
@@ -156,6 +165,8 @@ button:hover {
 }
 
 #resultArea {
+    font-family: 'Consolas', 'Courier New', monospace;
+    line-height: 1.1;
     /* Oluline on märkida, et kui te kasutate display: flex; koos flex-direction: column;, 
     siis align-items: left; ei pruugi olla toetatud väärtus. 
     Selle asemel võiksite kasutada align-items: flex-start;, et tagada sisu joondamine vasakule.*/ 
@@ -165,25 +176,35 @@ button:hover {
     align-items: flex-start;
 
     /* width: 600px; Alglaius on 600px */
-    min-width: 600px; /* Minimaalne laius, väli ei lähe kitsamaks kui 600px */
+    min-width: 625px; /* Minimaalne laius, väli ei lähe kitsamaks kui 625px */
     max-width: max-content; /* Lubab väljal laieneda sisu laiuse järgi */
 
     /* min-width: 600px; */
     /* max-width: none; eemaldab maksimaalse laiuse piirangu */
     /* width: auto; lubab laiusel automaatselt kohanduda sisu järgi */
-    height: 400px;
+    min-height: 200px;
+    max-height: max-content;
     margin: 20px auto;
     padding: 20px;
     /* background-color: #f0f0f0; */
     background-color: var(--main-background-color);
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-    white-space: pre-wrap;
+    white-space: pre;
     overflow-y: auto; /* Näitab kerimisriba kui sisu ületab kõrguse */
-    word-wrap: break-word; /* Veenduge, et pikad sõnad ei läheks üle piiri */
+    word-wrap: normal; /* Veenduge, et pikad sõnad ei läheks üle piiri */
+}
+
+.error {
+    font-size: 12px;
+    font-weight: 600;
+    color: #ff0000;
+    padding: 15px;
 }
 
 #information {
+    font-family: 'Consolas', 'Courier New', monospace;
+
     font-size: 14px;
     /* color: #6c6c6c; */
     color: var(--info-text-color);
@@ -199,6 +220,8 @@ textarea {
 }
 
 #userInput {
+    font-family: 'Consolas', 'Courier New', monospace;
+
     overflow-y: auto;
     width: 100%;
     height: 400px;
@@ -239,3 +262,23 @@ textarea {
     /* margin-bottom: 20px; */
 }
 
+/* see on hea variant mida endale õppimisse siia alles jätta.. nimelt - see paneb kodulehe vaikimisi selliseks, milline on kasutaja arvuti seadistus.
+Dark või light mode 
+see oli ChatGPT vestluses V4-art lõpuviimistlus '
+*/
+/* 
+@media (prefers-color-scheme: dark) {
+    :root {
+      --text-shadow-color: #000000;
+      --primary-text-color: #c6c2c2;
+      --info-text-color: #d3d3d3;
+      --background-color: #777;
+      --button-background-color: linear-gradient(#6f6f6f, #6f6f6f, #555);
+  
+      --main-background-color: #6f6f6f;
+      --textarea-background-color: #333; 
+      --header-background: linear-gradient(#333, #555, #777);
+      --footer-background: linear-gradient(#777, #555, #333);
+    }
+  } */
+  

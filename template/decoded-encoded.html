@@ -11,10 +11,10 @@ Ava veebibrauser ja mine aadressile http://localhost:8000.
          <meta charset="UTF-8">
          <meta name="viewport" content="width=device-width, initial-scale=1.0">
          <title>Art-interface</title>
-         <link rel="stylesheet" href="/static/css/styles.css">
+         <link rel="stylesheet" href="/static/css/styles.css">        
      </head>
  
- <body>      
+ <body>
      <header>
          <div id="headersText">ART INTERFACE</div>
      </header>
@@ -43,8 +43,12 @@ kas "decode" või "encode", sõltuvalt sellest, kumb nupp oli vajutatud. Serveri
          </form>
 
          <div id="resultArea">
-            <p id="information"> Your result will appear here..</p>
-         </div>
+            {{if .Error}}
+                <p class="error">{{.Error}}</p>
+            {{else}}
+                <p id="information">{{.Result}}</p>
+            {{end}}
+        </div>
          
      </main>
  

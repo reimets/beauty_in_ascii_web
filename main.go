@@ -4,23 +4,48 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"text/template"
+)
+
+// Kui soovite veateateid kuvada samal viisil nagu edukaid tulemusi, saate kasutada sama malli ja lihtsalt muuta vastavat Result väärtust,
+// et see sisaldaks veateadet. Selleks saate luua üldise struktuuri, mis võimaldab teil veateateid ja edukaid tulemusi ühtemoodi käsitleda.
+type PageData struct {
+	Result string
+	Error  string
+}
+
+// Defines command-line flags with default values and descriptions.
+// flag.Parse() // Processes the command-line flags and sets the corresponding variables.
+var (
+	helpFlag      = flag.Bool("h", false, "Enable help mode")
+	helpFlagHelp  = flag.Bool("help", false, "Enable help mode")
+	encodeFlag    = flag.Bool("e", false, "Enable encode mode")
+	multiLineFlag = flag.Bool("m", false, "Enable multi-line mode")
+	webFlag       = flag.Bool("w", false, "Enable web server mode")
 )
 
 func main() {
-	// Defines command-line flags with default values and descriptions.
-	helpFlag := flag.Bool("h", false, "Enable help mode")
-	encodeFlag := flag.Bool("e", false, "Enable encode mode")
-	multiLineFlag := flag.Bool("m", false, "Enable multi-line mode")
+	log.Println()
 	flag.Parse() // Processes the command-line flags and sets the corresponding variables.
 
+	if *webFlag {
+		startWebServer()
+	} else {
+		runCommandLine()
+	}
+}
+
+func runCommandLine() {
 	args := flag.Args() // Returns the command-line arguments that are not flags.
 
 	// If the help flag is used, displays usage instructions and exits the program.
-	if *helpFlag {
+	if *helpFlag || *helpFlagHelp {
 		displayTheUsage()
 		return
 	}
@@ -29,37 +54,53 @@ func main() {
 
 	// Checks if an argument with .encoded.txt suffix is provided and reads its content.
 	if len(args) == 1 && strings.HasSuffix(args[0], ".encoded.txt") {
-		filePath := args[0]
+		filePath := "./static/txt-files/" + args[0]
 		fileContent, err := os.ReadFile(filePath)
 		if err != nil {
-			fmt.Printf("\033[41mError:\033[0m\n Error reading file! \"%s\"\n", err)
+			fmt.Printf("\033[41mError:\033[0m\n Error reading file \"%s\": %v\n", filePath, err)
 			return
 		}
 		input = string(fileContent)
-
-		decode(input, *multiLineFlag)
+		result, err := decode(input, *multiLineFlag)
+		if err != nil {
+			fmt.Println("\033[41m Decode error: \033[0m\n", err)
+			return
+		}
+		fmt.Println("Decoded result:")
+		fmt.Println(result)
 		return
 	}
 
 	// Checks if an argument with .art.txt suffix is provided and reads its content.
 	if len(args) == 1 && strings.HasSuffix(args[0], ".art.txt") {
-		filePath := args[0]
+		filePath := "./static/txt-files/" + args[0]
 		fileContent, err := os.ReadFile(filePath)
 		if err != nil {
-			fmt.Printf("\033[41mError:\033[0m\n Error reading file! \"%s\"\n", err)
+			fmt.Printf("\033[41mError:\033[0m\n Error reading file \"%s\": %v\n", filePath, err)
 			return
 		}
 		input = string(fileContent)
-
-		encode(input, *multiLineFlag)
+		result, err := encode(input, *multiLineFlag)
+		if err != nil {
+			fmt.Println("Encode error:", err)
+			return
+		}
+		fmt.Println("Encoded result:")
+		fmt.Println(result)
 		return
 	}
 
+	///////////////////////////////////////////////
 	// If the encode flag is used and there is one argument provided.
 	if *encodeFlag {
 		if len(args) == 1 { // checks if one more argument is given besides flags, and for that it is args[0]
-			encode(args[0], *multiLineFlag)
-			fmt.Println()
+			result, err := encode(args[0], *multiLineFlag)
+			if err != nil {
+				fmt.Println("Encode error:", err)
+				return
+			}
+			fmt.Println("Encoded result:")
+			fmt.Println(result)
 			return
 		}
 	}
@@ -71,91 +112,185 @@ func main() {
 			// Encode the input
 			fmt.Println("Enter multi-line input for encoding (Ctrl+D to finish):")
 			input = handleMultiLineInput()
-			encode(input, *encodeFlag)
+			result, err := encode(input, *encodeFlag)
+			if err != nil {
+				fmt.Println("Encode error:", err)
+				return
+			}
+			fmt.Printf("Encoded result:\n")
+			fmt.Println(result)
+			return
+
 		} else if len(args) == 0 {
 			fmt.Println("Enter multi-line input for decoding (Ctrl+D to finish):")
 			input = handleMultiLineInput()
-			decode(input, *multiLineFlag)
+			result, err := decode(input, *multiLineFlag)
+			if err != nil {
+				fmt.Println("\033[41m Decode error: \033[0m\n", err)
+				return
+			}
+			fmt.Println("Decoded result:")
+			fmt.Println(result)
+			return
+
 		} else {
 			fmt.Println("\n\033[41mError:\033[0m\n Invalid usage with -m or -e flag.")
-			displayTheUsage()
-			return
-		}
-
-		if len(args) == 1 { // checks if one more argument is given besides flags, and for that it is args[0]
-			decode(args[0], *multiLineFlag)
-		} else {
+			// displayTheUsage()
 			return
 		}
 
 	} else {
 		if len(args) != 1 {
-			fmt.Println("\n\033[41mError:\033[0m\nNo correct input provided or too many arguments.\nOr maybe you didn't used \"\"-s?")
-			displayTheUsage()
+			fmt.Println("\n\033[41mError:\033[0m\nNo correct input provided or too many arguments.\nOr maybe you didn't used \"\"-s?\nUse \"go run main.go -h\" for help.")
 			return
 		}
 		// If the -m flag is not used
 		input = args[0]
 		if len(args) == 1 {
-			decode(input, *multiLineFlag)
+			result, err := decode(input, *multiLineFlag)
+			if err != nil {
+				fmt.Println("\033[41m Decode error: \033[0m\n", err)
+				return
+			}
+			fmt.Println("Decoded result:")
+			fmt.Println(result)
+			return
 
 		} else {
-			displayTheUsage()
 			return
 		}
-	}
-
-	// Checks for empty square brackets in arguments.
-	if strings.Contains(args[0], "[]") {
-		fmt.Println("\n\033[41mError:\033[0m\n There are no arguments between square brackets")
-		fmt.Println()
-		return
 	}
 }
 
-func decode(input string, multiLine bool) {
+func startWebServer() {
+	http.HandleFunc("/", serveHomepage)
+	http.HandleFunc("/decoded-encoded", handleDecoderEncoder)
+
+	// Seadista staatiliste failide marsruut
+	fs := http.FileServer(http.Dir("static"))                 // Eeldab, et teil on "static" kataloog peakataloogi tasemel
+	http.Handle("/static/", http.StripPrefix("/static/", fs)) // Eemalda "/static" prefiks enne faili otsimist
+
+	fmt.Println("Server is running on http://localhost:8000")
+	log.Fatal(http.ListenAndServe(":8000", nil))
+}
+
+func handleDecoderEncoder(w http.ResponseWriter, r *http.Request) {
+	log.Println("Decoder/Encoder Started")
+
+	if r.Method != "POST" {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing the form", http.StatusBadRequest)
+		return
+	}
+
+	action := r.FormValue("buttonAction")
+	inputString := r.FormValue("inputString")
+
+	var pageData PageData
+	var result string
+	var err error
+
+	tmpl, tmplErr := template.ParseFiles("template/decoded-encoded.html")
+	if tmplErr != nil {
+		log.Printf("Template error: %v", tmplErr) // Logi vea sõnum
+		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	switch action {
+	case "decode":
+		result, err = decode(inputString, true)
+	case "encode":
+		result, err = encode(inputString, true)
+	default:
+		http.Error(w, "Invalid action", http.StatusBadRequest)
+		return
+	}
+
+	if inputString == "" {
+		log.Println("HTTP400 Bad Request - No input inserted")
+		errorInInput(w, "No input", tmpl)
+		return
+		// http.Error(w, "empty input", http.StatusBadRequest)
+	}
+
+	if err != nil {
+		log.Println("HTTP400 Bad Request - Check README.md info for input information")
+		errorInInput(w, "Wrong input - Check README.md info for input information", tmpl)
+		pageData.Error = err.Error() // Vea sõnum
+		return
+	} else {
+		log.Println("HTTP202 valid encoded strings")
+		w.WriteHeader(http.StatusAccepted)
+		pageData.Result = result // Edukas tulemus
+	}
+
+	// Käivitada mall pageData'ga, mis sisaldab nii tulemust kui ka võimalikku veateadet
+	tmplErr = tmpl.Execute(w, pageData)
+	if tmplErr != nil {
+		// Kui malli käivitamisel tekib viga, logige see ja saatke kasutajale veateade
+		log.Printf("Error executing template: %v", tmplErr)
+		http.Error(w, "Error executing the template", http.StatusInternalServerError)
+	}
+}
+
+func errorInInput(w http.ResponseWriter, errorMessage string, template *template.Template) {
+	w.WriteHeader(http.StatusBadRequest)
+	result := errorMessage
+
+	p := PageData{
+		Error: result,
+	}
+	if err := template.Execute(w, p); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func serveHomepage(w http.ResponseWriter, r *http.Request) {
+	// Veenduge, et server ei serveeriks kogemata kataloogi sisu
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+	http.ServeFile(w, r, "index.html")
+}
+
+func decode(input string, multiLine bool) (string, error) {
+	var resultBuilder strings.Builder
+	if !isBracketsBalanced(input) {
+		return "", fmt.Errorf("error: Square brackets are unbalanced")
+	}
+
+	if strings.Contains(input, "[]") {
+		return "", fmt.Errorf("error: Square brackets are empty")
+	}
+
 	if multiLine {
-		// Splits the input into lines for multi-line decoding.
 		lines := strings.Split(input, "\n")
 		for _, line := range lines {
-			decodedLine, success := decodeString(line)
-			if success {
-				fmt.Println(decodedLine)
-
-			} else {
-				fmt.Println("\n\033[41mError:\033[0m\n Multiline decoding failed")
-				displayTheUsage()
-
-				return
+			decodedLine, err := decodeString(line)
+			if err != nil { // Kontrolli, kas `err` on mitte-nil, mis tähendab vea esinemist
+				return "", fmt.Errorf("multiline decoding failed: %v", err)
 			}
+			resultBuilder.WriteString(decodedLine + "\n")
 		}
 	} else {
-		// Decodes a single line of input.
-		decodedString, success := decodeString(input)
-		if success {
-			fmt.Println(decodedString)
-		} else {
-			fmt.Println("\n\033[41mError:\033[0m\n Decoding failed - check arguments between brackets [ ]")
-			fmt.Println()
-			return
+		decodedString, err := decodeString(input)
+		if err != nil {
+			return "", fmt.Errorf("decoding failed - check arguments between brackets [ ]: %v", err)
 		}
+		resultBuilder.WriteString(decodedString)
 	}
+	return resultBuilder.String(), nil
 }
 
 // Logic for decoding, using regular expressions and checking for balanced brackets.
 // Additional checks and the implementation of the decoding process.
-func decodeString(input string) (string, bool) {
-	if !isBracketsBalanced(input) {
-		displayTheUsage()
-		fmt.Println("\n\033[41mError:\033[0m\n Square brackets are unbalanced")
-		return "", false
-	}
-
-	if strings.Contains(input, "[]") {
-		displayTheUsage()
-		return "", false
-	}
-
+func decodeString(input string) (string, error) {
 	// Implement decoding logic
 	pattern := regexp.MustCompile(`\[([^\]]+)\]|([^[]+)`)
 	matches := pattern.FindAllStringSubmatch(input, -1)
@@ -165,14 +300,12 @@ func decodeString(input string) (string, bool) {
 		if match[1] != "" {
 			arguments := strings.SplitN(match[1], " ", 2)
 			if len(arguments) != 2 {
-				displayTheUsage()
-				return "", false
+				return "", fmt.Errorf("error: Wrong amout of arguments between square brackets. Use \"go run main.go -h\" for help")
 			}
 
 			number, err := strconv.Atoi(arguments[0])
 			if err != nil || arguments[1] == "" {
-				// displayTheUsage()
-				return "", false
+				return "", fmt.Errorf("error: invalid number or missing argument in brackets. Use \"go run main.go -h\" for help")
 			}
 
 			result += strings.Repeat(arguments[1], number)
@@ -181,38 +314,35 @@ func decodeString(input string) (string, bool) {
 			result += match[2]
 		}
 	}
-	return result, true
+	return result, nil
 }
 
 // Similar logic to the decode function but for encoding.
 // Uses strings.Builder to create the encoded string.
-func encode(input string, multiLine bool) {
+func encode(input string, multiLine bool) (string, error) {
+	var resultBuilder strings.Builder
+
 	if multiLine {
 		lines := strings.Split(input, "\n")
 		for _, line := range lines {
-			encodedLine, success := encodeString(line)
-			if success {
-				fmt.Println(encodedLine)
-			} else {
-				fmt.Println("\n\033[41mError:\033[0m\n Multiline encoding failed")
-				// displayTheUsage()
-				return
+			encodedLine, err := encodeString(line)
+			if err != nil {
+				return "", fmt.Errorf("multiline encoding failed")
 			}
+			resultBuilder.WriteString(encodedLine + "\n")
 		}
 	} else {
-		encodedString, success := encodeString(input)
-		if success {
-			fmt.Println(encodedString)
-		} else {
-			fmt.Println("\n\033[41mError:\033[0m\n Encoding failed! Maybe you didn't used \"-s? ")
-			fmt.Println()
-			return
+		encodedString, err := encodeString(input)
+		if err != nil {
+			return "", fmt.Errorf("encoding failed")
 		}
+		resultBuilder.WriteString(encodedString)
 	}
+	return resultBuilder.String(), nil
 }
 
 // Logic for encoding, handling character repetition and encoding accordingly.
-func encodeString(input string) (string, bool) {
+func encodeString(input string) (string, error) {
 	var encodedBuilder strings.Builder // Creates a new string builder for constructing the encoded string.
 	i := 0                             // Initialize the index for traversing the input string.
 
@@ -248,7 +378,7 @@ func encodeString(input string) (string, bool) {
 		encodedBuilder.WriteString(fmt.Sprintf("%c", input[i])) // Add the single character to the builder.
 		i++                                                     // Move the index forward by one.
 	}
-	return encodedBuilder.String(), true // Return the encoded string and true indicating success.
+	return encodedBuilder.String(), nil // Return the encoded string or error
 }
 
 // Reads multi-line input from standard input using bufio.Scanner.
@@ -287,6 +417,9 @@ func displayTheUsage() {
 
 	fmt.Println("\033[45mFor decoding\033[0m")
 
+	fmt.Println("\033[35mTo enable web server mode use \"go run main.go -w\" \033[0m")
+
+	fmt.Println()
 	fmt.Println("\033[35mFor single line decoding:          Follow this patter => go run main.go \"[\033[34m[number]\033[35m[single space]\033[34m[character(s)]\033[35m][same logic as in previous brackets][etc.]]\" \033[0m")
 	fmt.Println("\033[35m             for example:          go run main.go \"[5 #][5 -_]-[5 #]\" \033[0m")
 	fmt.Println("\033[34mFor decoding from file:            use file with the end \033[35m\".encoded.txt\"\033[34m. Example: go run main.go cats.encoded.txt\033[0m")
