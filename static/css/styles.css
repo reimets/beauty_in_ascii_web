@@ -142,6 +142,30 @@ button {
     cursor: pointer;
 }
 
+#home {
+    width: 150px; /* Muutke laiust vajadusel */
+    height: 75px; /* Muutke kõrgust vajadusel */
+    /* background-image: linear-gradient(#b8b8b8, #f0f0f0, #f0f0f0); */
+    background-image: var(--button-background-color);
+    /* color: #333; */
+    color: var(--primary-text-color);
+    font-weight: 600;
+    font-size: 0.9em;
+    /* text-shadow: 1px 2px 7px #575757; */
+    text-shadow: 1px 2px 7px var(--text-shadow-color);
+    text-align: center;
+    line-height: 20px; /* Reguleerige teksti vertikaalset keskendamist */
+    border-radius: 50%; /* See tekitab ovaalse kuju */
+    /* margin-bottom: 20px; */
+
+    padding: 25px 20px; 
+    cursor: pointer;
+}
+
+#home:hover {
+    opacity: 0.7;
+}
+
 button:hover {
     opacity: 0.7;
 }
@@ -237,10 +261,10 @@ textarea {
 }
 
 .themeToggleButtons {
-    display: left;
+    display: flex;
     justify-content: center ; /* Jaotab nupud ühtlaselt */
     width: 100%; /* Võimaldab nuppudel võtta kogu vormi laiuse */
-    gap: 50px;
+    gap: 350px;
 }
 
 
