@@ -13,15 +13,15 @@ import (
 	"text/template"
 )
 
-// Kui soovite veateateid kuvada samal viisil nagu edukaid tulemusi, saate kasutada sama malli ja lihtsalt muuta vastavat Result väärtust,
-// et see sisaldaks veateadet. Selleks saate luua üldise struktuuri, mis võimaldab teil veateateid ja edukaid tulemusi ühtemoodi käsitleda.
+// PageData holds the result of a processing operation and an error message, if any.
+// It's designed for easy rendering of both success and error outcomes in web templates.
 type PageData struct {
 	Result string
 	Error  string
 }
 
-// Defines command-line flags with default values and descriptions.
-// flag.Parse() // Processes the command-line flags and sets the corresponding variables.
+// Initializes command-line flags with default values and help descriptions.
+// Flags include help mode, encode mode, multi-line mode, and web server mode.
 var (
 	helpFlag      = flag.Bool("h", false, "Enable help mode")
 	helpFlagHelp  = flag.Bool("help", false, "Enable help mode")
@@ -30,17 +30,20 @@ var (
 	webFlag       = flag.Bool("w", false, "Enable web server mode")
 )
 
+// The main function parses command-line flags and decides whether to start the web server or process commands in the command line mode.
 func main() {
 	log.Println()
 	flag.Parse() // Processes the command-line flags and sets the corresponding variables.
 
 	if *webFlag {
-		startWebServer()
+		startWebServer() // Start the web server if the web flag is set.
 	} else {
-		runCommandLine()
+		runCommandLine() // Otherwise, process input from the command line.
 	}
 }
 
+// runCommandLine processes the input provided through the command line based on the flags and arguments passed by the user.
+// It handles different modes such as help, encode, multi-line, and reading from specific file types.
 func runCommandLine() {
 	args := flag.Args() // Returns the command-line arguments that are not flags.
 
@@ -90,7 +93,6 @@ func runCommandLine() {
 		return
 	}
 
-	///////////////////////////////////////////////
 	// If the encode flag is used and there is one argument provided.
 	if *encodeFlag {
 		if len(args) == 1 { // checks if one more argument is given besides flags, and for that it is args[0]
@@ -135,7 +137,6 @@ func runCommandLine() {
 
 		} else {
 			fmt.Println("\n\033[41mError:\033[0m\n Invalid usage with -m or -e flag.")
-			// displayTheUsage()
 			return
 		}
 
@@ -155,25 +156,28 @@ func runCommandLine() {
 			fmt.Println("Decoded result:")
 			fmt.Println(result)
 			return
-
 		} else {
 			return
 		}
 	}
 }
 
+// startWebServer initializes and starts the HTTP server, setting up routes for the homepage and the encode/decode endpoint.
+// It also configures serving static files from a predefined directory.
 func startWebServer() {
 	http.HandleFunc("/", serveHomepage)
 	http.HandleFunc("/decoded-encoded", handleDecoderEncoder)
 
-	// Seadista staatiliste failide marsruut
-	fs := http.FileServer(http.Dir("static"))                 // Eeldab, et teil on "static" kataloog peakataloogi tasemel
-	http.Handle("/static/", http.StripPrefix("/static/", fs)) // Eemalda "/static" prefiks enne faili otsimist
+	// Set the static files route
+	fs := http.FileServer(http.Dir("static"))                 // Assumes you have a "static" directory at root level
+	http.Handle("/static/", http.StripPrefix("/static/", fs)) // Remove the "/static" prefix before searching for the file
 
 	fmt.Println("Server is running on http://localhost:8000")
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
 
+// handleDecoderEncoder processes POST requests for encoding or decoding operations from the web form.
+// It validates the request method, parses the form data, performs the requested action, and renders the result or error on the web page.
 func handleDecoderEncoder(w http.ResponseWriter, r *http.Request) {
 	log.Println("Decoder/Encoder Started")
 
@@ -201,43 +205,44 @@ func handleDecoderEncoder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if inputString == "" {
+		log.Println("400 Bad Request - No input inserted")
+		errorInInput(w, "No input", tmpl)
+		return
+	}
+
 	switch action {
 	case "decode":
 		result, err = decode(inputString, true)
 	case "encode":
 		result, err = encode(inputString, true)
 	default:
-		http.Error(w, "Invalid action", http.StatusBadRequest)
+		log.Println("400 Bad Request - Invalid action")
+		errorInInput(w, "Invalid action", tmpl)
 		return
-	}
-
-	if inputString == "" {
-		log.Println("HTTP400 Bad Request - No input inserted")
-		errorInInput(w, "No input", tmpl)
-		return
-		// http.Error(w, "empty input", http.StatusBadRequest)
 	}
 
 	if err != nil {
-		log.Println("HTTP400 Bad Request - Check README.md info for input information")
-		errorInInput(w, "Wrong input - Check README.md info for input information", tmpl)
-		pageData.Error = err.Error() // Vea sõnum
+		log.Printf("400 Bad Request - %v", err)
+		errorInInput(w, err.Error(), tmpl)
+		pageData.Error = err.Error() // Error message
 		return
 	} else {
-		log.Println("HTTP202 valid encoded strings")
+		log.Println("202 - input string valid")
 		w.WriteHeader(http.StatusAccepted)
-		pageData.Result = result // Edukas tulemus
+		pageData.Result = result // A successful result
 	}
 
-	// Käivitada mall pageData'ga, mis sisaldab nii tulemust kui ka võimalikku veateadet
+	// Run the template with pageData containing both the result and possible error message
 	tmplErr = tmpl.Execute(w, pageData)
 	if tmplErr != nil {
-		// Kui malli käivitamisel tekib viga, logige see ja saatke kasutajale veateade
+		// If an error occurs while running the template, log it and send an error message to the user
 		log.Printf("Error executing template: %v", tmplErr)
 		http.Error(w, "Error executing the template", http.StatusInternalServerError)
 	}
 }
 
+// errorInInput handles rendering of error messages in the web interface when input validation fails or other errors occur during form processing.
 func errorInInput(w http.ResponseWriter, errorMessage string, template *template.Template) {
 	w.WriteHeader(http.StatusBadRequest)
 	result := errorMessage
@@ -250,8 +255,10 @@ func errorInInput(w http.ResponseWriter, errorMessage string, template *template
 	}
 }
 
+// serveHomepage serves the main homepage of the web application.
+// It ensures that only the root path "/" is handled by this function, responding with the index.html file.
 func serveHomepage(w http.ResponseWriter, r *http.Request) {
-	// Veenduge, et server ei serveeriks kogemata kataloogi sisu
+	// Make sure the server doesn't accidentally serve the contents of the directory
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -259,6 +266,8 @@ func serveHomepage(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "index.html")
 }
 
+// decode takes an encoded string input and a flag indicating whether the input is multi-line.
+// It performs decoding operations, ensuring that square brackets are balanced and not empty, and returns the decoded string or an error.
 func decode(input string, multiLine bool) (string, error) {
 	var resultBuilder strings.Builder
 	if !isBracketsBalanced(input) {
@@ -273,7 +282,7 @@ func decode(input string, multiLine bool) (string, error) {
 		lines := strings.Split(input, "\n")
 		for _, line := range lines {
 			decodedLine, err := decodeString(line)
-			if err != nil { // Kontrolli, kas `err` on mitte-nil, mis tähendab vea esinemist
+			if err != nil {
 				return "", fmt.Errorf("multiline decoding failed: %v", err)
 			}
 			resultBuilder.WriteString(decodedLine + "\n")
@@ -288,6 +297,7 @@ func decode(input string, multiLine bool) (string, error) {
 	return resultBuilder.String(), nil
 }
 
+// decodeString performs the actual decoding logic for a single line of input.
 // Logic for decoding, using regular expressions and checking for balanced brackets.
 // Additional checks and the implementation of the decoding process.
 func decodeString(input string) (string, error) {
@@ -318,6 +328,8 @@ func decodeString(input string) (string, error) {
 }
 
 // Similar logic to the decode function but for encoding.
+// encode takes a string input and a flag for multi-line input.
+// It encodes the input by compressing repeated characters or patterns into a bracketed format.
 // Uses strings.Builder to create the encoded string.
 func encode(input string, multiLine bool) (string, error) {
 	var resultBuilder strings.Builder
@@ -341,7 +353,8 @@ func encode(input string, multiLine bool) (string, error) {
 	return resultBuilder.String(), nil
 }
 
-// Logic for encoding, handling character repetition and encoding accordingly.
+// encodeString handles the core logic for encoding a single line of input.
+// It detects repeated characters or patterns and converts them into an encoded string format.
 func encodeString(input string) (string, error) {
 	var encodedBuilder strings.Builder // Creates a new string builder for constructing the encoded string.
 	i := 0                             // Initialize the index for traversing the input string.
@@ -381,7 +394,8 @@ func encodeString(input string) (string, error) {
 	return encodedBuilder.String(), nil // Return the encoded string or error
 }
 
-// Reads multi-line input from standard input using bufio.Scanner.
+// handleMultiLineInput reads multi-line input from the standard input (stdin) until EOF is reached (using bufio.Scanner).
+// It concatenates the lines into a single string with line breaks.
 func handleMultiLineInput() string {
 	scanner := bufio.NewScanner(os.Stdin)
 	var lines []string
@@ -392,7 +406,8 @@ func handleMultiLineInput() string {
 	return strings.Join(lines, "\n")
 }
 
-// Checks if the square brackets in the input are balanced.
+// isBracketsBalanced checks if the square brackets in the input string are properly balanced.
+// It ensures that for every opening bracket '[', there is a corresponding closing bracket ']'.
 func isBracketsBalanced(input string) bool {
 	var brackets int
 
@@ -410,14 +425,16 @@ func isBracketsBalanced(input string) bool {
 	return brackets == 0
 }
 
-// Displays usage instructions, including examples of how to use the program.
+// displayTheUsage prints the usage instructions for the program to the console.
+// It includes guidance on how to use the command-line flags and provides examples for both encoding and decoding operations.
 func displayTheUsage() {
 	fmt.Println("\n\033[41m Usage instructions: \033[0m")
+
+	fmt.Println()
+	fmt.Println("\033[35mTo enable web server mode use \"go run main.go -w\" \033[0m")
 	fmt.Println()
 
-	fmt.Println("\033[45mFor decoding\033[0m")
-
-	fmt.Println("\033[35mTo enable web server mode use \"go run main.go -w\" \033[0m")
+	fmt.Println("\033[45mFor decoding from the terminal:\033[0m")
 
 	fmt.Println()
 	fmt.Println("\033[35mFor single line decoding:          Follow this patter => go run main.go \"[\033[34m[number]\033[35m[single space]\033[34m[character(s)]\033[35m][same logic as in previous brackets][etc.]]\" \033[0m")
@@ -429,7 +446,7 @@ func displayTheUsage() {
 	fmt.Println("\033[45m\033[1m NB! After completing the multi-line input in the terminal, please push \"enter\" and then the EOF (End Of File) character by pressing CTRL+D on Linux/MacOS systems or CTRL+Z on Windows systems. This signals to the program that input reading is finished. \033[0m\033[22m")
 
 	fmt.Println()
-	fmt.Println("\033[44mFor encoding\033[0m")
+	fmt.Println("\033[44mFor encoding from the terminal:\033[0m")
 	fmt.Println("\033[34mFor single line encoding:          add \"-e\" after main.go (For example: go run main.go -e \"[pattern_you_wish_to_encode]\") \033[0m")
 	fmt.Println("\033[34m             for example:          go run main.go -e \"#####-_-_-_-_-_-#####\" \033[0m")
 	fmt.Println("\033[35mFor decoding from file:            use file with the end \033[34m\".art.txt\"\033[35m. For example: go run main.go cats.art.txt \033[0m")
