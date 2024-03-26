@@ -166,14 +166,14 @@ func runCommandLine() {
 // It also configures serving static files from a predefined directory.
 func startWebServer() {
 	http.HandleFunc("/", serveHomepage)
-	http.HandleFunc("/decoded-encoded", handleDecoderEncoder)
+	http.HandleFunc("/decoder", handleDecoderEncoder)
 
 	// Set the static files route
 	fs := http.FileServer(http.Dir("static"))                 // Assumes you have a "static" directory at root level
 	http.Handle("/static/", http.StripPrefix("/static/", fs)) // Remove the "/static" prefix before searching for the file
 
-	fmt.Println("Server is running on http://localhost:8000")
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	fmt.Println("Server is running on http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // handleDecoderEncoder processes POST requests for encoding or decoding operations from the web form.
@@ -198,7 +198,7 @@ func handleDecoderEncoder(w http.ResponseWriter, r *http.Request) {
 	var result string
 	var err error
 
-	tmpl, tmplErr := template.ParseFiles("template/decoded-encoded.html")
+	tmpl, tmplErr := template.ParseFiles("template/decoder.html")
 	if tmplErr != nil {
 		log.Printf("Template error: %v", tmplErr) // Logi vea sõnum
 		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
@@ -225,10 +225,11 @@ func handleDecoderEncoder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("400 Bad Request - %v", err)
 		errorInInput(w, err.Error(), tmpl)
-		pageData.Error = err.Error() // Error message
+		pageData.Error = err.Error() // Error message visible
 		return
 	} else {
 		log.Println("202 - input string valid")
+		// w.WriteHeader(http.StatusOK)
 		w.WriteHeader(http.StatusAccepted)
 		pageData.Result = result // A successful result
 	}
@@ -263,6 +264,12 @@ func serveHomepage(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+
+	// disables caching. Resulting,that The GET / endpoint returns HTTP200 not 304
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate") // Disables caching
+	w.Header().Set("Pragma", "no-cache")                                   // HTTP/1.0 backwards compatibility
+	w.Header().Set("Expires", "0")                                         // For proxy servers and browsers
+
 	http.ServeFile(w, r, "index.html")
 }
 
@@ -429,12 +436,11 @@ func isBracketsBalanced(input string) bool {
 // It includes guidance on how to use the command-line flags and provides examples for both encoding and decoding operations.
 func displayTheUsage() {
 	fmt.Println("\n\033[41m Usage instructions: \033[0m")
-
 	fmt.Println()
+
+	fmt.Println("\033[45mFor decoding\033[0m")
+
 	fmt.Println("\033[35mTo enable web server mode use \"go run main.go -w\" \033[0m")
-	fmt.Println()
-
-	fmt.Println("\033[45mFor decoding from the terminal:\033[0m")
 
 	fmt.Println()
 	fmt.Println("\033[35mFor single line decoding:          Follow this patter => go run main.go \"[\033[34m[number]\033[35m[single space]\033[34m[character(s)]\033[35m][same logic as in previous brackets][etc.]]\" \033[0m")
@@ -446,7 +452,7 @@ func displayTheUsage() {
 	fmt.Println("\033[45m\033[1m NB! After completing the multi-line input in the terminal, please push \"enter\" and then the EOF (End Of File) character by pressing CTRL+D on Linux/MacOS systems or CTRL+Z on Windows systems. This signals to the program that input reading is finished. \033[0m\033[22m")
 
 	fmt.Println()
-	fmt.Println("\033[44mFor encoding from the terminal:\033[0m")
+	fmt.Println("\033[44mFor encoding\033[0m")
 	fmt.Println("\033[34mFor single line encoding:          add \"-e\" after main.go (For example: go run main.go -e \"[pattern_you_wish_to_encode]\") \033[0m")
 	fmt.Println("\033[34m             for example:          go run main.go -e \"#####-_-_-_-_-_-#####\" \033[0m")
 	fmt.Println("\033[35mFor decoding from file:            use file with the end \033[34m\".art.txt\"\033[35m. For example: go run main.go cats.art.txt \033[0m")

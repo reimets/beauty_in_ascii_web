@@ -1,4 +1,4 @@
-# beauty_in_ascii_web: README.md
+# art-decoder/encoder: README.md
 
 ## Overview
 
